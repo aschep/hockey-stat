@@ -27,6 +27,8 @@ class PlayerGameStat:
 
 @dataclass
 class Player:
+    player_id: str
+    player_url: str
     name: str
     birthday: str
     position: str
@@ -34,7 +36,7 @@ class Player:
     weight: str
     height: str
     school: str
-    in_school_from: str
+    number: int
 
 
 class PlayerParser:
@@ -43,23 +45,26 @@ class PlayerParser:
         "score": re.compile(r"^<div class=\"cell  score\">(.*)<\/div>$"),
         "tournament": re.compile(r"^<div class=\"cell\">(.*)<\/div>$"),
         "date": re.compile(r"^<div class=\"cell date\">(.*)<\/div>$"),
-        "teams": re.compile(r"^<div class=\"cell\">(.*)<\/div>$")
+        "teams": re.compile(r"^<div class=\"cell\">(.*)<\/div>$"),
     }
     stat_pars_re = re.compile(r"^<div class=\"cell cell--center\">(.*)<\/div>$")
     stat_re = {
         "score": re.compile(r"^<div class=\"cell score\">(.*)<\/div>$"),
         "tournament": re.compile(r"^<div class=\"cell\">(.*)<\/div>$"),
         "date": re.compile(r"^<div class=\"cell date\">(.*)<\/div>$"),
-        "teams": re.compile(r"^<div class=\"cell teams\">"
-                            r"<a href=\"\/games\/\d+\/\?teamId=\d+-\d+\" class=\"(member)?\">(.*)<\/a>"
-                            r"<a href=\"\/games\/\d+\/\?teamId=\d+-\d+\" class=\"(member)?\">(.*)<\/a>"
-                            r"<\/div>$")
+        "teams": re.compile(
+            r"^<div class=\"cell teams\">"
+            r"<a href=\"\/games\/\d+\/\?teamId=\d+-\d+\" class=\"(member)?\">(.*)<\/a>"
+            r"<a href=\"\/games\/\d+\/\?teamId=\d+-\d+\" class=\"(member)?\">(.*)<\/a>"
+            r"<\/div>$"
+        ),
     }
 
-    def __init__(self, player_id: str, url: str):
-        self._url = url
+    def __init__(self, player_id: str, number: int, url: str):
         self._player_id = player_id
-        self.player_stats_url = f"local/components/itprofit/player-stat/templates/.default/ajax-matches.php?player_id={player_id}"
+        self.player_stats_url = f"/local/components/itprofit/player-stat/templates/.default/ajax-matches.php?player_id={player_id}"
+        self._number = number
+        self._url = url
 
     def parse(self) -> t.Optional[Player]:
         content = make_request(self._url)
@@ -68,28 +73,28 @@ class PlayerParser:
             return
 
         soup = BeautifulSoup(content, "html.parser")
-        single_info = soup.find("div", class_="player-single__info")
-        if not single_info:
-            logger.warning("can not find player single info div")
+        player_info = soup.find("div", class_="player-header__body")
+        if not player_info:
+            logger.warning("can not find player info")
             return
 
-        data = single_info.find_all("div", class_="info__data-text")
-        if not data:
-            logger.warning("can not find player info data")
-            return
+        name = player_info.find("h2", class_="player-header__title")
+        fields = {"name": name.text.strip()}
+        keys = ("position", "height", "weight", "grip", "birthday", "nation", "school")
+        for key, item in zip(
+            keys, player_info.find_all("div", class_="player-data__row-item")
+        ):
+            if key == "nation":
+                continue
+            span = item.find_next("span")
+            fields[key] = span.text.strip()
 
-        player_fields = (
-            "name",
-            "birthday",
-            "school",
-            "in_school_from",
-            "position",
-            "height",
-            "weight",
-            "grip",
+        return Player(
+            player_id=self._player_id,
+            player_url=self._url,
+            number=self._number,
+            **fields,
         )
-        fields = {key: item.text.strip() for key, item in zip(player_fields, data)}
-        return Player(**fields)
 
     def parse_stats(self) -> t.List[PlayerGameStat]:
         content = make_request(self.player_stats_url)
@@ -102,7 +107,9 @@ class PlayerParser:
         columns = {}
         for item in content["columns"]:
             key = item["data"]
-            columns[key] = self.columns_re.get(key, self.pars_re).match(item["title"]).group(1)
+            columns[key] = (
+                self.columns_re.get(key, self.pars_re).match(item["title"]).group(1)
+            )
 
         stats = []
         data = content["data"][:-1]
@@ -114,22 +121,24 @@ class PlayerParser:
                 if not matched:
                     break
                 if key == "teams":
-                    value = f"{matched[2]} : {matched[4]}"
+                    value = f"{matched[2].strip()} : {matched[4].strip()}"
                 else:
-                    value = matched[1]
+                    value = matched[1].strip()
                 item_stat[key] = value
             if item_stat:
-                stats.append(PlayerGameStat(
-                    tournament=item_stat["tournament"],
-                    date=item_stat["date"],
-                    score=item_stat["score"],
-                    teams=item_stat["teams"],
-                    goals=int(item_stat["par2"]),
-                    assists=item_stat["par3"],
-                    points=item_stat["par4"],
-                    plus=item_stat["par5"],
-                    minus=item_stat["par6"],
-                    plus_minus=item_stat["par7"],
-                ))
+                stats.append(
+                    PlayerGameStat(
+                        tournament=item_stat["tournament"],
+                        date=item_stat["date"],
+                        score=item_stat["score"],
+                        teams=item_stat["teams"],
+                        goals=int(item_stat["par2"]),
+                        assists=int(item_stat["par3"]),
+                        points=int(item_stat["par4"]),
+                        plus=int(item_stat["par5"]),
+                        minus=int(item_stat["par6"]),
+                        plus_minus=int(item_stat["par7"]),
+                    )
+                )
 
         return stats
