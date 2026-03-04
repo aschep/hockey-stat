@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "hockey-stat"
+version = "0.1.0"
+description = ""
+authors = ["Alexey Schepin <aschepin@ptsecurity.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+beautifulsoup4 = "^4.14.3"
+requests = "^2.32.5"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^26.1.0"
+isort = "^8.0.1"
+pytest = "^9.0.2"
+pytest-mock = "^3.15.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
