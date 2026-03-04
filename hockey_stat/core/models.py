@@ -1,4 +1,5 @@
 import typing as t
+from dataclasses import asdict
 from dataclasses import dataclass, field
 
 
@@ -28,6 +29,9 @@ class Player:
     height: str
     school: str
     number: int
+
+    def to_dict(self) -> dict:
+        return asdict(self)
 
 
 @dataclass

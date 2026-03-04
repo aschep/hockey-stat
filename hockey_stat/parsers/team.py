@@ -2,7 +2,8 @@ import logging
 
 from bs4 import BeautifulSoup
 
-from hockey_stat.core.models import Player, TeamInfo
+from hockey_stat.core.models import TeamInfo
+from hockey_stat.helpers import get_id_from_url
 from hockey_stat.parsers.player import PlayerParser
 from hockey_stat.requester import make_request
 
@@ -36,7 +37,7 @@ class TeamParser:
             ).text.strip()
             link = item.find_next("a", class_="team-player-card__name")
             player_url = link.attrs["href"]
-            player_id = player_url.rsplit("-", 1)[1][:-1]
+            player_id = get_id_from_url(player_url)
             if player := PlayerParser(player_id, int(number), player_url).parse():
                 logger.debug("add player %s (%s)", player.name, player_id)
                 self._team.players.append(player)
