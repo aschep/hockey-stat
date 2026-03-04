@@ -1,9 +1,9 @@
+from hockey_stat.parsers.player import PlayerParser
 from tests.conftest import read_file
-from hockey_stat.player import PlayerParser
 
 
 def test_parser_player_info(monkeypatch):
-    monkeypatch.setattr("hockey_stat.player.make_request", read_file)
+    monkeypatch.setattr("hockey_stat.parsers.player.make_request", read_file)
 
     player = PlayerParser("11111111", 1, "tests/data/player_stat.html").parse()
 
@@ -21,7 +21,7 @@ def test_parser_player_info(monkeypatch):
 
 
 def test_parser_player_game_stats(monkeypatch):
-    monkeypatch.setattr("hockey_stat.player.make_request", read_file)
+    monkeypatch.setattr("hockey_stat.parsers.player.make_request", read_file)
 
     parser = PlayerParser("11111111", 1, "tests/data/player_stat.html")
     parser.player_stats_url = "tests/data/player_games_stat.json"

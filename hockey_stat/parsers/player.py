@@ -2,41 +2,13 @@ import json
 import logging
 import re
 import typing as t
-from dataclasses import dataclass
 
 from bs4 import BeautifulSoup
 
+from hockey_stat.core.models import Player, PlayerGameStat
 from hockey_stat.requester import make_request
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class PlayerGameStat:
-    tournament: str
-    date: str
-    score: str
-    teams: str
-    goals: int
-    assists: int
-    points: int
-    plus: int
-    minus: int
-    plus_minus: int
-
-
-@dataclass
-class Player:
-    player_id: str
-    player_url: str
-    name: str
-    birthday: str
-    position: str
-    grip: str
-    weight: str
-    height: str
-    school: str
-    number: int
 
 
 class PlayerParser:

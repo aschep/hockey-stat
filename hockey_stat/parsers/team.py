@@ -1,20 +1,12 @@
 import logging
-import typing as t
-from dataclasses import dataclass, field
 
 from bs4 import BeautifulSoup
 
-from hockey_stat.player import Player, PlayerParser
+from hockey_stat.core.models import Player, TeamInfo
+from hockey_stat.parsers.player import PlayerParser
 from hockey_stat.requester import make_request
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class TeamInfo:
-    name: str
-    url: str
-    players: t.List[Player] = field(default_factory=list)
 
 
 class TeamParser:
@@ -33,14 +25,18 @@ class TeamParser:
             logger.warning("can not find players info div")
             return
 
-        players = players_wrap.find_all("a", class_="team-player-card__name")
+        players = players_wrap.find_all("div", class_="team-player-card")
         if not players:
             logger.warning("can not find players info data")
             return
 
         for item in players:
-            player_url = item.attrs["href"]
+            number = item.find_next(
+                "span", class_="team-player-card__number"
+            ).text.strip()
+            link = item.find_next("a", class_="team-player-card__name")
+            player_url = link.attrs["href"]
             player_id = player_url.rsplit("-", 1)[1][:-1]
-            if player := PlayerParser(player_id, player_url).parse():
+            if player := PlayerParser(player_id, int(number), player_url).parse():
                 logger.debug("add player %s (%s)", player.name, player_id)
                 self._team.players.append(player)
