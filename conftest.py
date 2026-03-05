@@ -1,4 +1,5 @@
 import pytest
+
 from hockey_stat.storage.database import SessionLocal
 
 

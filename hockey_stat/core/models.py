@@ -1,6 +1,5 @@
 import typing as t
-from dataclasses import asdict
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass
