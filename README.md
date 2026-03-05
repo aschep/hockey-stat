@@ -7,21 +7,22 @@
         ├── pyproject.toml        
         ├── README.md        
         ├── conftest.py
-        ├── src/hockeybot/
+        ├── hockeybot/
         │   ├── core/            
         │   │   ├── models.py    
         │   │   └── enums.py
         │   ├── parsers/         
         │   │   ├── player.py    
         │   │   ├── team.py
-        │   ├── storage/         
-        │   │   ├── sql.py       
-        │   │   └── models.py
+        │   ├── storage/
+        │   │   ├── database.py
+        │   │   ├── models.py
+        │   │   └── repository.py
         │   └── bot/             
         │       ├── handlers.py  
         │       └── main.py
-        ├── tests/               
-        ├── data/            
+        ├── tests/
+        │   └── data/
         └── migrations/
 
 🚀 МVP (5 ДНЕЙ)
