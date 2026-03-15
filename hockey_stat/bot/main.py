@@ -6,8 +6,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from dotenv import load_dotenv
 
-from hockey_stat.storage.middleware import DatabaseMiddleware
-from hockey_stat.storage.middleware import SessionLocal
+from hockey_stat.storage.middleware import DatabaseMiddleware, SessionLocal
+
 from . import handlers
 
 load_dotenv()

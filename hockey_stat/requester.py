@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 def make_request(url_: str) -> t.Optional[str]:
     try:
         url = f"https://pfo.fhr.ru{url_}"
+        logger.debug("make request: %s", url)
         resp = requests.get(url, timeout=10)
         resp.raise_for_status()
         return resp.text

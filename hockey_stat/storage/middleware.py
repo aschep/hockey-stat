@@ -1,8 +1,7 @@
 import os
+from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
-from typing import Callable, Dict, Any, Awaitable
-
 from sqlalchemy.ext import asyncio
 
 from .dao.team import TeamDAO

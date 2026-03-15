@@ -1,6 +1,8 @@
 import typing as t
+
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from ..models import TeamDB
 
 
@@ -12,7 +14,6 @@ class TeamDAO:
         result = await self.session.execute(
             sa.select(TeamDB)
             .where(TeamDB.name == name)
-            .join(TeamDB.players)
             .options(sa.orm.joinedload(TeamDB.players))
         )
-        return result.one_or_none()
+        return result.scalar()

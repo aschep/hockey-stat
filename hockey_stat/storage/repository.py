@@ -10,8 +10,13 @@ class TeamRepository:
         self.db = db
 
     def save(self, team: TeamInfo) -> TeamDB:
-        db_team = TeamDB(name=team.name, url=team.url)
+        db_team = self.find_by_name(team.name)
+        if not db_team:
+            db_team = TeamDB(name=team.name, url=team.url)
+        else:
+            db_team.url = team.url
         self.db.merge(db_team)
+        self.db.flush()
         return db_team
 
     def find_by_name(self, name: str) -> TeamDB:
@@ -23,8 +28,8 @@ class PlayerRepository:
         self.db = db
 
     def save(self, player: Player, team_id: int):
-        db_player = PlayerDB(team_id=team_id, **player.to_dict())
-        self.db.merge(db_player)
+        db_player = self.db.merge(PlayerDB(team_id=team_id, **player.to_dict()))
+        self.db.flush()
         return db_player
 
     def find_by_id(self, player_id: str) -> PlayerDB:

@@ -1,5 +1,3 @@
-from sqlalchemy import text
-
 from hockey_stat.core.models import Player, TeamInfo
 from hockey_stat.storage.repository import PlayerRepository, TeamRepository
 
@@ -24,15 +22,32 @@ def test_found_team_by_name(get_db):
         "/teams/sdfsdfsdfsdfsdfsdfsdfsdf_2342348/",
     )
     saved = repo.save(team)
-    get_db.commit()
     assert saved.name == team.name
 
     found = repo.find_by_name(team.name)
     assert found
     assert found.name == team.name
     assert found.url == team.url
-    get_db.execute(text("delete from teams;"))
-    get_db.commit()
+
+
+def test_update_team(get_db):
+    repo = TeamRepository(get_db)
+
+    team = TeamInfo(
+        "team name",
+        "/teams/sdfsdfsdfsdfsdfsdfsdfsdf_2342348/",
+    )
+    saved = repo.save(team)
+    assert saved.name == team.name
+
+    team_new = TeamInfo(
+        "team name",
+        "/teams/new_url/",
+    )
+    found = repo.save(team_new)
+    assert found
+    assert found.name == team.name
+    assert found.url == team_new.url
 
 
 def check_player(player: Player, saved: Player):
@@ -95,13 +110,9 @@ def test_find_player_by_player_id(get_db):
         4,
     )
     saved = player_repo.save(player, saved_team.id)
-    get_db.commit()
     assert saved.name == player.name
 
     found = player_repo.find_by_id(player.player_id)
 
     check_player(player, found)
     assert found.team_id == saved_team.id
-    get_db.execute(text("delete from players;"))
-    get_db.execute(text("delete from teams;"))
-    get_db.commit()

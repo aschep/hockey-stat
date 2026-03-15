@@ -14,6 +14,10 @@ class TeamParser:
     def __init__(self, name: str, url: str):
         self._team = TeamInfo(name=name, url=url)
 
+    @property
+    def team(self):
+        return self._team
+
     def parse(self):
         content = make_request(self._team.url)
         if not content:
