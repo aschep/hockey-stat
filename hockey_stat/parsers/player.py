@@ -34,7 +34,9 @@ class PlayerParser:
 
     def __init__(self, player_id: str, number: int, url: str):
         self._player_id = player_id
-        self.player_stats_url = f"/local/components/itprofit/player-stat/templates/.default/ajax-matches.php?player_id={player_id}"
+        self.player_stats_url = (
+            f"/local/components/itprofit/player-stat/templates/.default/ajax-matches.php?player_id={player_id}"
+        )
         self._number = number
         self._url = url
 
@@ -53,9 +55,7 @@ class PlayerParser:
         name = player_info.find("h2", class_="player-header__title")
         fields = {"name": name.text.strip()}
         keys = ("position", "height", "weight", "grip", "birthday", "nation", "school")
-        for key, item in zip(
-            keys, player_info.find_all("div", class_="player-data__row-item")
-        ):
+        for key, item in zip(keys, player_info.find_all("div", class_="player-data__row-item")):
             if key == "nation":
                 continue
             span = item.find_next("span")
@@ -79,9 +79,7 @@ class PlayerParser:
         columns = {}
         for item in content["columns"]:
             key = item["data"]
-            columns[key] = (
-                self.columns_re.get(key, self.pars_re).match(item["title"]).group(1)
-            )
+            columns[key] = self.columns_re.get(key, self.pars_re).match(item["title"]).group(1)
 
         stats = []
         data = content["data"][:-1]

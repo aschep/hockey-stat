@@ -20,6 +20,6 @@ def client():
     return "mocked html"
 
 
-def read_file(filename: str) -> str:
+def read_file(filename: str, params=None) -> str:
     with open(filename, "r") as fp:
         return fp.read()

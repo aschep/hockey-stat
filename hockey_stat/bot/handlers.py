@@ -28,10 +28,7 @@ async def cmd_team(message: Message, team_dao: TeamDAO):
         await message.answer(f"Команда `{name}` не найдена")
         return
 
-    msg = "\n".join(
-        f"\t {player.number}. {player.name}: {player.position} ({player.grip})"
-        for player in team.players
-    )
+    msg = "\n".join(f"\t {player.number}. {player.name}: {player.position} ({player.grip})" for player in team.players)
 
     await message.answer(f"Игроки {name}")
     await message.answer(

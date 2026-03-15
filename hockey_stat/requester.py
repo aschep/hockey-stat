@@ -7,11 +7,14 @@ from requests.exceptions import RequestException
 logger = logging.getLogger(__name__)
 
 
-def make_request(url_: str) -> t.Optional[str]:
+BASE_URL = "https://pfo.fhr.ru"
+
+
+def make_request(url_: str, params=None) -> t.Optional[str]:
     try:
-        url = f"https://pfo.fhr.ru{url_}"
+        url = f"{BASE_URL}{url_}"
         logger.debug("make request: %s", url)
-        resp = requests.get(url, timeout=10)
+        resp = requests.get(url, params, timeout=10)
         resp.raise_for_status()
         return resp.text
     except RequestException as e:

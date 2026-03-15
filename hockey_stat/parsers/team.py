@@ -36,9 +36,7 @@ class TeamParser:
             return
 
         for item in players:
-            number = item.find_next(
-                "span", class_="team-player-card__number"
-            ).text.strip()
+            number = item.find_next("span", class_="team-player-card__number").text.strip()
             link = item.find_next("a", class_="team-player-card__name")
             player_url = link.attrs["href"]
             player_id = get_id_from_url(player_url)

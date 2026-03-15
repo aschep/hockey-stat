@@ -12,8 +12,6 @@ class TeamDAO:
 
     async def get_team_by_name(self, name: str) -> t.Optional[TeamDB]:
         result = await self.session.execute(
-            sa.select(TeamDB)
-            .where(TeamDB.name == name)
-            .options(sa.orm.joinedload(TeamDB.players))
+            sa.select(TeamDB).where(TeamDB.name == name).options(sa.orm.joinedload(TeamDB.players))
         )
         return result.scalar()
