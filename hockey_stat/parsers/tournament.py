@@ -71,10 +71,10 @@ class GroupsParser:
         self.groups_ = []
 
     @property
-    def groups(self):
+    def groups(self) -> t.List[Group]:
         return self.groups_
 
-    def parse(self):
+    def parse(self) -> None:
         self.groups_.clear()
         content = make_request(self._tournament.url, _make_params("tournament", self._tournament.key))
         if not content:

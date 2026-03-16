@@ -1,7 +1,53 @@
-from sqlalchemy import Column, ForeignKey, Integer, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
+
+
+class TournamentDB(Base):
+    __tablename__ = "tournaments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    age = Column(Integer, nullable=False)
+    name = Column(Text, nullable=False)
+    url = Column(Text, nullable=False)
+    key = Column(Text, nullable=False)
+
+    __table_args__ = (UniqueConstraint("name", "age", name="name_age_uc"),)
+
+    groups = relationship("GroupDB", back_populates="tournament")
+
+
+class GroupDB(Base):
+    __tablename__ = "groups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tournament_id = Column(Integer, ForeignKey("tournaments.id"))
+    name = Column(Text, nullable=False)
+    url = Column(Text, nullable=False)
+    key = Column(Text, nullable=False)
+
+    __table_args__ = (UniqueConstraint("name", "tournament_id", name="name_tournament_id_uc"),)
+
+    tournament = relationship("TournamentDB", back_populates="groups")
+    games = relationship("GameDB", back_populates="group")
+
+
+class GameDB(Base):
+    __tablename__ = "games"
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id"))
+    number = Column(Integer, nullable=False)
+    date = Column(DateTime(timezone=True), nullable=False)
+    home_team_id = Column(Integer, ForeignKey("teams.id"))
+    guest_team_id = Column(Integer, ForeignKey("teams.id"))
+    result = Column(Text, nullable=False)
+    url = Column(Text, nullable=False)
+
+    group = relationship("GroupDB", back_populates="games")
+    home_team = relationship("TeamDB", primaryjoin="GameDB.home_team_id == TeamDB.id", lazy="joined")
+    guest_team = relationship("TeamDB", primaryjoin="GameDB.guest_team_id == TeamDB.id", lazy="joined")
 
 
 class PlayerDB(Base):

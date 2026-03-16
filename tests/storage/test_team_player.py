@@ -10,6 +10,7 @@ def test_save_team(get_db):
         "/teams/sdfsdfsdfsdfsdfsdfsdfsdf_2342348/",
     )
     saved = repo.save(team)
+
     assert saved.name == team.name
     assert saved.url == team.url
 

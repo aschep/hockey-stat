@@ -1,8 +1,49 @@
 from sqlalchemy.orm import Session
 
-from hockey_stat.core.models import Player, TeamInfo
+from hockey_stat.core.models import Player, TeamInfo, Tournament
 
-from .models import PlayerDB, TeamDB
+from ..core.models import Group
+from .models import GroupDB, PlayerDB, TeamDB, TournamentDB
+
+
+class TournamentRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def save(self, tour: Tournament) -> TournamentDB:
+        db_tour = self.find_by_name_age(tour.name, tour.age)
+        if not db_tour:
+            db_tour = TournamentDB(name=tour.name, age=tour.age, url=tour.url, key=tour.key)
+        else:
+            db_tour.url = tour.url
+            db_tour.key = tour.key
+
+        self.db.merge(db_tour)
+        self.db.flush()
+        return db_tour
+
+    def find_by_name_age(self, name: str, age: int) -> TournamentDB:
+        return self.db.query(TournamentDB).filter(TournamentDB.name == name, TournamentDB.age == age).first()
+
+
+class GroupRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def save(self, group: Group, tournament_id: int) -> GroupDB:
+        db_group = self.find_by_name_tournament_id(tournament_id, group.name)
+        if not db_group:
+            db_group = GroupDB(name=group.name, url=group.url, key=group.key, tournament_id=tournament_id)
+        else:
+            db_group.url = group.url
+            db_group.key = group.key
+
+        self.db.merge(db_group)
+        self.db.flush()
+        return db_group
+
+    def find_by_name_tournament_id(self, tournament_id: int, name: str) -> TournamentDB:
+        return self.db.query(GroupDB).filter(GroupDB.name == name, GroupDB.tournament_id == tournament_id).first()
 
 
 class TeamRepository:
