@@ -24,26 +24,28 @@ def upgrade() -> None:
     op.create_table(
         "teams",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.Text(), nullable=True),
-        sa.Column("url", sa.Text(), nullable=True),
+        sa.Column("name", sa.Text(), nullable=False),
+        sa.Column("city", sa.Text(), nullable=False),
+        sa.Column("url", sa.Text(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_teams_id"), "teams", ["id"], unique=False)
     op.create_index(op.f("ix_teams_name"), "teams", ["name"], unique=False)
+    op.create_index(op.f("ix_teams_url"), "teams", ["url"], unique=True)
     op.create_table(
         "players",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("number", sa.Integer(), nullable=True),
-        sa.Column("team_id", sa.Integer(), nullable=True),
-        sa.Column("player_id", sa.Text(), nullable=True),
-        sa.Column("player_url", sa.Text(), nullable=True),
-        sa.Column("name", sa.Text(), nullable=True),
-        sa.Column("birthday", sa.Text(), nullable=True),
-        sa.Column("position", sa.Text(), nullable=True),
-        sa.Column("grip", sa.Text(), nullable=True),
-        sa.Column("weight", sa.Text(), nullable=True),
-        sa.Column("height", sa.Text(), nullable=True),
-        sa.Column("school", sa.Text(), nullable=True),
+        sa.Column("number", sa.Integer(), nullable=False),
+        sa.Column("team_id", sa.Integer(), nullable=False),
+        sa.Column("player_id", sa.Text(), nullable=False),
+        sa.Column("player_url", sa.Text(), nullable=False),
+        sa.Column("name", sa.Text(), nullable=False),
+        sa.Column("birthday", sa.Text(), nullable=False),
+        sa.Column("position", sa.Text(), nullable=False),
+        sa.Column("grip", sa.Text(), nullable=False),
+        sa.Column("weight", sa.Text(), nullable=False),
+        sa.Column("height", sa.Text(), nullable=False),
+        sa.Column("school", sa.Text(), nullable=False),
         sa.ForeignKeyConstraint(
             ["team_id"],
             ["teams.id"],
@@ -63,6 +65,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_players_name"), table_name="players")
     op.drop_index(op.f("ix_players_id"), table_name="players")
     op.drop_table("players")
+    op.drop_index(op.f("ix_teams_url"), table_name="teams")
     op.drop_index(op.f("ix_teams_name"), table_name="teams")
     op.drop_index(op.f("ix_teams_id"), table_name="teams")
     op.drop_table("teams")

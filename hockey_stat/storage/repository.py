@@ -51,17 +51,22 @@ class TeamRepository:
         self.db = db
 
     def save(self, team: TeamInfo) -> TeamDB:
-        db_team = self.find_by_name(team.name)
+        db_team = self.find_by_url(team.url)
         if not db_team:
-            db_team = TeamDB(name=team.name, url=team.url)
+            db_team = TeamDB(**(team.to_dict()))
         else:
-            db_team.url = team.url
-        self.db.merge(db_team)
+            db_team.city = team.city
+            db_team.name = team.name
+
+        db_team = self.db.merge(db_team)
         self.db.flush()
         return db_team
 
     def find_by_name(self, name: str) -> TeamDB:
         return self.db.query(TeamDB).filter(TeamDB.name == name).first()
+
+    def find_by_url(self, url: str) -> TeamDB:
+        return self.db.query(TeamDB).filter(TeamDB.url == url).first()
 
 
 class PlayerRepository:

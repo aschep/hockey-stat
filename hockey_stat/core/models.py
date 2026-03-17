@@ -37,6 +37,7 @@ class Player:
 @dataclass
 class TeamInfo:
     name: str
+    city: str
     url: str
     players: t.List[Player] = field(default_factory=list)
 

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class TeamParser:
     def __init__(self, name: str, url: str):
-        self._team = TeamInfo(name=name, url=url)
+        self._team = TeamInfo(name=name, city="", url=url)
 
     @property
     def team(self):

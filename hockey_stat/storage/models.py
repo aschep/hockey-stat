@@ -76,8 +76,9 @@ class TeamDB(Base):
     __tablename__ = "teams"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(Text, index=True)
-    url = Column(Text)
+    name = Column(Text, nullable=False, index=True)
+    city = Column(Text)
+    url = Column(Text, nullable=False, index=True, unique=True)
 
     players = relationship("PlayerDB", back_populates="team")
 
