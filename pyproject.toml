@@ -54,3 +54,7 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
+
+[tool.poetry.scripts]
+parser = "hockey_stat.scripts.parser:main"
+bot = "hockey_stat.bot.main:main"

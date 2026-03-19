@@ -59,7 +59,7 @@ def main():
 
     if args.parser == "team":
         team_parser = TeamParser(args.name, args.url)
-        logger.info("start parse team `%s`", team_parser.team.name)
+        logger.info("parsing team `%s`", team_parser.team.name)
         team_parser.parse()
 
         with SessionLocal() as db_session:
@@ -76,16 +76,16 @@ def main():
             db_session.commit()
     elif args.parser == "tour":
         tour_parser = TournamentParser(args.name, args.url)
-        logger.info("start parse team `%s`", args.name)
+        logger.info("parsing team `%s`", args.name)
         tour_parser.parse()
         logger.info("parsed tours for ages %r", tour_parser.ages())
         tournaments = tour_parser.tournaments
         for tour in tournaments:
-            logger.info("start parse calendar and table for '%s %d'", tour.name, tour.age)
+            logger.info("parsing calendar and table for '%s %d'", tour.name, tour.age)
             groups_parser = GroupsParser(tour)
             groups_parser.parse()
             tour.groups = groups_parser.groups
-            logger.info("parser %d groups: %r", len(tour.groups), tuple(g.name for g in tour.groups))
+            logger.info("parsed %d groups: %r", len(tour.groups), tuple(g.name for g in tour.groups))
 
         logger.info("start saving to db...")
         with SessionLocal() as db_session:
