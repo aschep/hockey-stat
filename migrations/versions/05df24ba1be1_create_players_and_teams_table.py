@@ -25,7 +25,7 @@ def upgrade() -> None:
         "teams",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.Text(), nullable=False),
-        sa.Column("city", sa.Text(), nullable=False),
+        sa.Column("city", sa.Text()),
         sa.Column("url", sa.Text(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )

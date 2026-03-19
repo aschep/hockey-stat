@@ -59,7 +59,7 @@ class Game:
 
 
 @dataclass
-class TeamResult:
+class TeamGroupStats:
     place: int
     name: str
     city: str
@@ -85,7 +85,7 @@ class Group:
     name: str
     url: str
     key: str
-    teams: t.List[TeamResult] = field(default_factory=list)
+    teams: t.List[TeamGroupStats] = field(default_factory=list)
     games: t.List[Game] = field(default_factory=list)
 
     def to_dict(self) -> dict:

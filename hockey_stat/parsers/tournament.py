@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from bs4 import BeautifulSoup
 
-from hockey_stat.core.models import Game, Group, TeamResult, Tournament
+from hockey_stat.core.models import Game, Group, TeamGroupStats, Tournament
 from hockey_stat.requester import make_request
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,7 @@ class GroupsParser:
         )
         cols = row.find_all("td")
         item = cols[1]
-        return TeamResult(
+        return TeamGroupStats(
             place=int(cols[0].text.strip()),
             name=item.find("span", class_="team-title").text.strip(),
             city=item.find("span", class_="team-city").text.strip(),
@@ -153,7 +153,7 @@ class GroupsParser:
         )
 
     @staticmethod
-    def parse_concrete_group(url_, params, constructor_) -> t.Optional[t.List[t.Union[TeamResult, Game]]]:
+    def parse_concrete_group(url_, params, constructor_) -> t.Optional[t.List[t.Union[TeamGroupStats, Game]]]:
         content = make_request(url_, params)
         if not content:
             return

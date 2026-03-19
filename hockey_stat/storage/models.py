@@ -31,17 +31,18 @@ class GroupDB(Base):
 
     tournament = relationship("TournamentDB", back_populates="groups")
     games = relationship("GameDB", back_populates="group", cascade="save-update, merge, delete")
+    teams = relationship("TeamGroupStatsDB", back_populates="group", cascade="save-update, merge, delete")
 
 
 class GameDB(Base):
     __tablename__ = "games"
 
     id = Column(Integer, primary_key=True, index=True)
-    group_id = Column(Integer, ForeignKey("groups.id"))
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
     number = Column(Integer, nullable=False)
     date = Column(DateTime(timezone=True), nullable=False)
-    home_team_id = Column(Integer, ForeignKey("teams.id"))
-    guest_team_id = Column(Integer, ForeignKey("teams.id"))
+    home_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
+    guest_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
     result = Column(Text, nullable=False)
     url = Column(Text, nullable=False)
 
@@ -50,25 +51,47 @@ class GameDB(Base):
     guest_team = relationship("TeamDB", primaryjoin="GameDB.guest_team_id == TeamDB.id", lazy="joined")
 
 
+class TeamGroupStatsDB(Base):
+    __tablename__ = "team_group_stats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
+    team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
+    place = Column(Integer, nullable=False)
+    games = Column(Integer, nullable=False)
+    wins = Column(Integer, nullable=False)
+    wins_ot = Column(Integer, nullable=False)
+    wins_st = Column(Integer, nullable=False)
+    loss = Column(Integer, nullable=False)
+    loss_ot = Column(Integer, nullable=False)
+    loss_st = Column(Integer, nullable=False)
+    goal_scored = Column(Integer, nullable=False)
+    goal_allowed = Column(Integer, nullable=False)
+    plus_minus = Column(Integer, nullable=False)
+    points = Column(Integer, nullable=False)
+
+    group = relationship("GroupDB", back_populates="teams")
+    team = relationship("TeamDB", primaryjoin="TeamGroupStatsDB.team_id == TeamDB.id", lazy="joined")
+
+
 class PlayerDB(Base):
     __tablename__ = "players"
 
     id = Column(Integer, primary_key=True, index=True)
-    number = Column(Integer)
-    team_id = Column(Integer, ForeignKey("teams.id"))
+    number = Column(Integer, nullable=False)
+    team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
 
-    player_id = Column(Text, unique=True, index=True)
-    player_url = Column(Text)
-    name = Column(Text, index=True)
-    birthday = Column(Text)
-    position = Column(Text)
-    grip = Column(Text)
-    weight = Column(Text)
-    height = Column(Text)
-    school = Column(Text)
+    player_id = Column(Text, unique=True, index=True, nullable=False)
+    player_url = Column(Text, nullable=False)
+    name = Column(Text, index=True, nullable=False)
+    birthday = Column(Text, nullable=False)
+    position = Column(Text, nullable=False)
+    grip = Column(Text, nullable=False)
+    weight = Column(Text, nullable=False)
+    height = Column(Text, nullable=False)
+    school = Column(Text, nullable=False)
 
     team = relationship("TeamDB", back_populates="players")
-    # Связь с матчами (1:N)
     # stats = relationship("PlayerStats", back_populates="player")
 
 

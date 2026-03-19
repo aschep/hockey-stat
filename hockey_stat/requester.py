@@ -14,7 +14,7 @@ def make_request(url_: str, params=None) -> t.Optional[str]:
     try:
         url = f"{BASE_URL}{url_}"
         logger.debug("make request: %s", url)
-        resp = requests.get(url, params, timeout=10)
+        resp = requests.get(url, params=params, timeout=10)
         resp.raise_for_status()
         return resp.text
     except RequestException as e:

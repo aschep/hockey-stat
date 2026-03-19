@@ -1,8 +1,10 @@
+import typing as t
+
 from sqlalchemy.orm import Session
 
-from hockey_stat.core.models import Game, Group, Player, TeamInfo, Tournament
+from hockey_stat.core.models import Game, Group, Player, TeamGroupStats, TeamInfo, Tournament
 
-from .models import GameDB, GroupDB, PlayerDB, TeamDB, TournamentDB
+from .models import GameDB, GroupDB, PlayerDB, TeamDB, TeamGroupStatsDB, TournamentDB
 
 
 class TournamentRepository:
@@ -98,6 +100,59 @@ class GameRepository:
 
     def find_by_url(self, url: str) -> GameDB:
         return self.db.query(GameDB).filter(GameDB.url == url).first()
+
+
+class TeamGroupStatsRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def save(self, stat: TeamGroupStats, group_id: int) -> t.Optional[TeamGroupStatsDB]:
+        team_repo = TeamRepository(self.db)
+        db_team = team_repo.find_by_url(stat.url)
+        if not db_team:
+            return None
+
+        db_stats = self.find_team_stats_in_group(db_team.id, group_id)
+        if not db_stats:
+            db_stats = TeamGroupStatsDB(
+                group_id=group_id,
+                team_id=db_team.id,
+                place=stat.place,
+                games=stat.games,
+                wins=stat.wins,
+                wins_ot=stat.wins_ot,
+                wins_st=stat.wins_st,
+                loss=stat.loss,
+                loss_ot=stat.loss_ot,
+                loss_st=stat.loss_st,
+                goal_scored=stat.goal_scored,
+                goal_allowed=stat.goal_allowed,
+                plus_minus=stat.plus_minus,
+                points=stat.points,
+            )
+        else:
+            db_stats.place = stat.place
+            db_stats.games = stat.games
+            db_stats.wins = stat.wins
+            db_stats.wins_ot = stat.wins_ot
+            db_stats.wins_st = stat.wins_st
+            db_stats.loss = stat.loss
+            db_stats.loss_ot = stat.loss_ot
+            db_stats.loss_st = stat.loss_st
+            db_stats.goal_scored = stat.goal_scored
+            db_stats.goal_allowed = stat.goal_allowed
+            db_stats.plus_minus = stat.plus_minus
+            db_stats.points = stat.points
+        db_stats = self.db.merge(db_stats)
+        self.db.flush()
+        return db_stats
+
+    def find_team_stats_in_group(self, team_id: int, group_id: int) -> TeamGroupStatsDB:
+        return (
+            self.db.query(TeamGroupStatsDB)
+            .filter(TeamGroupStatsDB.team_id == team_id, TeamGroupStatsDB.group_id == group_id)
+            .first()
+        )
 
 
 class PlayerRepository:
