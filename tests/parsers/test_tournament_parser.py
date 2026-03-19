@@ -96,16 +96,16 @@ def test_groups_parser_concrete_group_calendar(monkeypatch):
     g = games[0]
     assert g.number == 59
     assert g.date == datetime.datetime(year=2025, month=12, day=21, hour=9, minute=45)
-    assert g.home_team == "Команда 1 Город 1"
-    assert g.guest_team == "Команда 2 Город 2"
+    assert g.home_team == "Команда 1"
+    assert g.guest_team == "Команда 2"
     assert g.result == "0:19"
     assert g.url == "/games/17392283/"
 
     g = games[1]
     assert g.number == 58
     assert g.date == datetime.datetime(year=2025, month=12, day=21, hour=8, minute=00)
-    assert g.home_team == "Команда 3 Город 3"
-    assert g.guest_team == "Команда 4 Город 4"
+    assert g.home_team == "Команда 3"
+    assert g.guest_team == "Команда 4"
     assert g.result == "8:6"
     assert g.url == "/games/17392282/"
 

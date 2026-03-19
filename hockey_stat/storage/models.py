@@ -15,14 +15,14 @@ class TournamentDB(Base):
 
     __table_args__ = (UniqueConstraint("name", "age", name="name_age_uc"),)
 
-    groups = relationship("GroupDB", back_populates="tournament")
+    groups = relationship("GroupDB", back_populates="tournament", cascade="save-update, merge, delete")
 
 
 class GroupDB(Base):
     __tablename__ = "groups"
 
     id = Column(Integer, primary_key=True, index=True)
-    tournament_id = Column(Integer, ForeignKey("tournaments.id"))
+    tournament_id = Column(Integer, ForeignKey("tournaments.id"), nullable=False)
     name = Column(Text, nullable=False)
     url = Column(Text, nullable=False)
     key = Column(Text, nullable=False)
@@ -30,7 +30,7 @@ class GroupDB(Base):
     __table_args__ = (UniqueConstraint("name", "tournament_id", name="name_tournament_id_uc"),)
 
     tournament = relationship("TournamentDB", back_populates="groups")
-    games = relationship("GameDB", back_populates="group")
+    games = relationship("GameDB", back_populates="group", cascade="save-update, merge, delete")
 
 
 class GameDB(Base):

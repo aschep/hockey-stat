@@ -58,7 +58,7 @@ def test_group_update(get_db):
     saved1 = repo.save(group1, tournament.id)
 
     check_group(saved1, group1, tournament.id)
-    assert saved1.name == saved.name
-    assert saved1.url != saved.url
-    assert saved1.key != saved.key
-    assert saved1.tournament_id == saved.tournament_id
+    assert saved1.name == group.name
+    assert saved1.url != group.url
+    assert saved1.key != group.key
+    assert saved1.tournament_id == tournament.id

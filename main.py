@@ -7,7 +7,13 @@ from hockey_stat.core.models import TeamInfo
 from hockey_stat.parsers.team import TeamParser
 from hockey_stat.parsers.tournament import GroupsParser, TournamentParser
 from hockey_stat.storage.database import SessionLocal
-from hockey_stat.storage.repository import GroupRepository, PlayerRepository, TeamRepository, TournamentRepository
+from hockey_stat.storage.repository import (
+    GameRepository,
+    GroupRepository,
+    PlayerRepository,
+    TeamRepository,
+    TournamentRepository,
+)
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(stream=sys.stdout)
@@ -74,31 +80,40 @@ def main():
         tour_parser.parse()
         logger.info("parsed tours for ages %r", tour_parser.ages())
         tournaments = tour_parser.tournaments
-        teams: t.Dict[str, TeamInfo] = {}
         for tour in tournaments:
             logger.info("start parse calendar and table for '%s %d'", tour.name, tour.age)
             groups_parser = GroupsParser(tour)
             groups_parser.parse()
             tour.groups = groups_parser.groups
             logger.info("parser %d groups: %r", len(tour.groups), tuple(g.name for g in tour.groups))
-            for g in tour.groups:
-                for team in g.teams:
-                    teams[team.url] = TeamInfo(name=team.name, city=team.city, url=team.url)
 
         logger.info("start saving to db...")
-        team_ids: t.Dict[str, int] = {}
         with SessionLocal() as db_session:
             team_repo = TeamRepository(db_session)
-            for team in teams.values():
-                db_team = team_repo.save(team)
-                team_ids[db_team.url] = db_team.id
-
             tour_repo = TournamentRepository(db_session)
             group_repo = GroupRepository(db_session)
+            game_repo = GameRepository(db_session)
+
+            group_counter = 0
+            game_counter = 0
             for tour in tournaments:
                 db_tour = tour_repo.save(tour)
                 for group in tour.groups:
                     db_group = group_repo.save(group, db_tour.id)
+                    group_counter += 1
+                    team_ids: t.Dict[str, int] = {}
+                    for team in group.teams:
+                        team = TeamInfo(name=team.name, city=team.city, url=team.url)
+                        db_team = team_repo.save(team)
+                        team_ids[db_team.name] = db_team.id
+
+                    for game in group.games:
+                        home_id = team_ids[game.home_team]
+                        guest_id = team_ids[game.guest_team]
+                        game_repo.save(game, db_group.id, home_id, guest_id)
+                        game_counter += 1
+            db_session.commit()
+            logger.info("Saved %d tournaments, %d groups, %d games", len(tournaments), group_counter, game_counter)
     else:
         logger.error("you can not get here. never.")
         exit(1)

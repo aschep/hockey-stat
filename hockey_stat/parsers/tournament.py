@@ -146,8 +146,8 @@ class GroupsParser:
         return Game(
             number=int(cols[0].text.strip()),
             date=datetime.strptime(f"{date} {time}", "%d.%m.%Y %H:%M"),
-            home_team=f"{home_name} {home_city}",
-            guest_team=f"{guest_name} {guest_city}",
+            home_team=home_name,
+            guest_team=guest_name,
             result=cols[4].text.strip(),
             url=cols[0].find("a")["href"],
         )

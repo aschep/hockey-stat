@@ -35,7 +35,7 @@ def upgrade() -> None:
     op.create_table(
         "groups",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("tournament_id", sa.Integer(), nullable=True),
+        sa.Column("tournament_id", sa.Integer(), nullable=False),
         sa.Column("name", sa.Text(), nullable=False),
         sa.Column("url", sa.Text(), nullable=False),
         sa.Column("key", sa.Text(), nullable=False),
@@ -50,11 +50,11 @@ def upgrade() -> None:
     op.create_table(
         "games",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("group_id", sa.Integer(), nullable=True),
+        sa.Column("group_id", sa.Integer(), nullable=False),
         sa.Column("number", sa.Integer(), nullable=False),
         sa.Column("date", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("home_team_id", sa.Integer(), nullable=True),
-        sa.Column("guest_team_id", sa.Integer(), nullable=True),
+        sa.Column("home_team_id", sa.Integer(), nullable=False),
+        sa.Column("guest_team_id", sa.Integer(), nullable=False),
         sa.Column("result", sa.Text(), nullable=False),
         sa.Column("url", sa.Text(), nullable=False),
         sa.ForeignKeyConstraint(
