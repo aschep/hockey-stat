@@ -2,7 +2,14 @@ import typing as t
 
 from sqlalchemy.orm import Session
 
-from hockey_stat.core.models import Game, Group, Player, TeamGroupStats, TeamInfo, Tournament
+from hockey_stat.core.models import (
+    Game,
+    Group,
+    Player,
+    TeamGroupStats,
+    TeamInfo,
+    Tournament,
+)
 
 from .models import GameDB, GroupDB, PlayerDB, TeamDB, TeamGroupStatsDB, TournamentDB
 
@@ -43,7 +50,7 @@ class GroupRepository:
         self.db.flush()
         return db_group
 
-    def find_by_name_tournament_id(self, tournament_id: int, name: str) -> TournamentDB:
+    def find_by_name_tournament_id(self, tournament_id: int, name: str) -> GroupDB:
         return self.db.query(GroupDB).filter(GroupDB.name == name, GroupDB.tournament_id == tournament_id).first()
 
 

@@ -27,10 +27,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip poetry
         poetry install --with dev
+        TEST=1 poetry run alembic upgrade head
     - name: Lint with black
       run: |
+        poetry run isort --check .
         poetry run black --check .
     - name: Test with pytest
       run: |
-        TEST=1 poetry run alembic upgrade head
         poetry run pytest -v --cov=./hockey_stat --cov-report=html
