@@ -1,12 +1,5 @@
-from datetime import datetime
-
-from hockey_stat.core.models import Group, TeamGroupStats, TeamInfo, Tournament
-from hockey_stat.storage.repository import (
-    GroupRepository,
-    TeamGroupStatsRepository,
-    TeamRepository,
-    TournamentRepository,
-)
+from hockey_stat.core.models import TeamGroupStats
+from hockey_stat.storage.repository import TeamGroupStatsRepository
 
 
 class TestGroupTeamRepository:

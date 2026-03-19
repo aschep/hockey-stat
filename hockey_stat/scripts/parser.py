@@ -14,6 +14,7 @@ from hockey_stat.storage.repository import (
     TeamRepository,
     TournamentRepository,
 )
+from hockey_stat.storage.repository import TeamGroupStatsRepository
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(stream=sys.stdout)
@@ -93,6 +94,7 @@ def main():
             tour_repo = TournamentRepository(db_session)
             group_repo = GroupRepository(db_session)
             game_repo = GameRepository(db_session)
+            stat_repo = TeamGroupStatsRepository(db_session)
 
             group_counter = 0
             game_counter = 0
@@ -103,15 +105,18 @@ def main():
                     group_counter += 1
                     team_ids: t.Dict[str, int] = {}
                     for team in group.teams:
-                        team = TeamInfo(name=team.name, city=team.city, url=team.url)
-                        db_team = team_repo.save(team)
+                        team_info = TeamInfo(name=team.name, city=team.city, url=team.url)
+                        db_team = team_repo.save(team_info)
                         team_ids[db_team.name] = db_team.id
+
+                        stat_repo.save(team, db_group.id)
 
                     for game in group.games:
                         home_id = team_ids[game.home_team]
                         guest_id = team_ids[game.guest_team]
                         game_repo.save(game, db_group.id, home_id, guest_id)
                         game_counter += 1
+
             db_session.commit()
             logger.info("Saved %d tournaments, %d groups, %d games", len(tournaments), group_counter, game_counter)
     else:
