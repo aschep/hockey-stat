@@ -32,4 +32,5 @@ jobs:
         poetry run black --check .
     - name: Test with pytest
       run: |
+        poetry run alembic upgrade head
         poetry run pytest -v --cov=./hockey_stat --cov-report=html
