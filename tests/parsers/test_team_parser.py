@@ -1,6 +1,6 @@
-from conftest import read_file
 from hockey_stat.core.models import Player
 from hockey_stat.parsers.team import TeamParser
+from tests.conftest import read_file
 
 
 class PlayerParserMock:

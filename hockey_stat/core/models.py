@@ -54,9 +54,6 @@ class Game:
     result: str
     url: str
 
-    def to_dict(self) -> dict:
-        return asdict(self)
-
 
 @dataclass
 class TeamGroupStats:
@@ -76,9 +73,6 @@ class TeamGroupStats:
     points: int
     url: str
 
-    def to_dict(self) -> dict:
-        return asdict(self)
-
 
 @dataclass
 class Group:
@@ -88,9 +82,6 @@ class Group:
     teams: t.List[TeamGroupStats] = field(default_factory=list)
     games: t.List[Game] = field(default_factory=list)
 
-    def to_dict(self) -> dict:
-        return asdict(self)
-
 
 @dataclass
 class Tournament:
@@ -99,6 +90,3 @@ class Tournament:
     url: str
     key: str
     groups: t.List[Group] = field(default_factory=list)
-
-    def to_dict(self) -> dict:
-        return asdict(self)

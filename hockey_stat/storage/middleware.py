@@ -5,16 +5,17 @@ from aiogram import BaseMiddleware
 from sqlalchemy.ext import asyncio
 
 from .dao.team import TeamDAO
+from .dao.tournament import TournamentDAO
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///hockeybot.db")
+DATABASE_URL = f"sqlite+aiosqlite:///{os.getenv('DATABASE_URL', 'hockeybot.db')}"
 
 engine = asyncio.create_async_engine(DATABASE_URL, echo=True)
 SessionLocal = asyncio.async_sessionmaker(engine, expire_on_commit=False)
 
 
-async def get_db() -> asyncio.AsyncSession:
-    async with SessionLocal() as session:
-        yield session
+# async def get_db() -> asyncio.AsyncSession:
+#     async with SessionLocal() as session:
+#         yield session
 
 
 class DatabaseMiddleware(BaseMiddleware):
@@ -28,4 +29,5 @@ class DatabaseMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         data["team_dao"] = TeamDAO(self.session)
+        data["tour_dao"] = TournamentDAO(self.session)
         return await handler(event, data)

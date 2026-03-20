@@ -11,10 +11,10 @@ from hockey_stat.storage.repository import (
     GameRepository,
     GroupRepository,
     PlayerRepository,
+    TeamGroupStatsRepository,
     TeamRepository,
     TournamentRepository,
 )
-from hockey_stat.storage.repository import TeamGroupStatsRepository
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(stream=sys.stdout)

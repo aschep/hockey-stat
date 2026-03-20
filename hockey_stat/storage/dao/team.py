@@ -3,7 +3,7 @@ import typing as t
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models import TeamDB
+from hockey_stat.storage.models import TeamDB
 
 
 class TeamDAO:

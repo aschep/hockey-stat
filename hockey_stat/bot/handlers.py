@@ -3,14 +3,26 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from hockey_stat.storage.dao.team import TeamDAO
+from hockey_stat.storage.dao.tournament import TournamentDAO
 
 router = Router()
 
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
+    print("cmd_start")
     await message.answer(
-        "🏒 **Хоккейная статистика**\n\n" "/team <name> — Состав команды\n",
+        "ХоккейStat Bot запущен!",
+        parse_mode="Markdown",
+    )
+
+
+@router.message(Command("tours"))
+async def cmd_tour(message: Message, tour_dao: TournamentDAO):
+    tours = await tour_dao.get_all()
+    msg = "\n".join(f"{tour.name} {tour.age}" for tour in tours)
+    await message.answer(
+        f"Турниры:\n\n{msg}",
         parse_mode="Markdown",
     )
 

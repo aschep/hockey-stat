@@ -1,5 +1,5 @@
-from conftest import read_file
 from hockey_stat.parsers.player import PlayerParser
+from tests.conftest import read_file
 
 
 def test_parser_player_info(monkeypatch):

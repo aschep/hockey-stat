@@ -1,8 +1,8 @@
 import datetime
 
-from conftest import read_file
 from hockey_stat.core.models import Tournament
 from hockey_stat.parsers.tournament import GroupsParser, TournamentParser
+from tests.conftest import read_file
 
 
 def test_parser_player_info(monkeypatch):
