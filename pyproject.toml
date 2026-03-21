@@ -5,8 +5,13 @@ description = ""
 authors = ["Alexey Schepin <aschepin@ptsecurity.com>"]
 readme = "README.md"
 
+include = [
+    "alembic.ini",
+    {path = "migrations", format = "sdist"}
+]
+
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 beautifulsoup4 = "^4.14.3"
 requests = "^2.32.5"
 sqlalchemy = "^2.0.48"
@@ -58,7 +63,6 @@ python_functions = "test_*"
 
 [tool.poetry.scripts]
 parser = "hockey_stat.scripts.parser:main"
-bot = "hockey_stat.bot.main:main"
 
 [tool.isort]
 profile = "black"
