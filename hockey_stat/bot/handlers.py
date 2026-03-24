@@ -131,15 +131,13 @@ async def cmd_set_group_name(message: Message, state: FSMContext, group_dao: Gro
 
     msg = ""
     if message.text == entities[0]:  # календарь
-        group = await group_dao.get_group_calendar(name=group_name, tour_id=tour_id)
+        games = await group_dao.get_group_calendar(name=group_name, tour_id=tour_id)
         msg = "\n|Дата|Хозяева|Гости|Счет|\n|:---|:---:|:---:|:---:|"
-        msg += "\n".join(
-            f"|{game.date}|{game.home_team.name}|{game.guest_team.name}|{game.result}|" for game in group.games
-        )
+        msg += "\n".join(f"|{game.date}|{game.home_team.name}|{game.guest_team.name}|{game.result}|" for game in games)
     elif message.text == entities[1]:  # Таблица
-        group = await group_dao.get_group_table(name=group_name, tour_id=tour_id)
+        teams = await group_dao.get_group_table(name=group_name, tour_id=tour_id)
         msg = "\n|#|Команда|Игры|Очки|\n|:---|:---:|---:|---:|\n"
-        msg += "\n".join(f"|{team.place}|{team.name}|{team.games}|{team.points}|" for team in group.teams)
+        msg += "\n".join(f"|{team.place}|{team.name}|{team.games}|{team.points}|" for team in teams)
 
     else:
         msg = f"{message.tex} - это что еще такое?!"

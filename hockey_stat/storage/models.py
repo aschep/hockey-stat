@@ -1,5 +1,5 @@
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, Text, UniqueConstraint
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import declarative_base, mapped_column, relationship
 
 Base = declarative_base()
 
@@ -30,27 +30,25 @@ class GroupDB(Base):
     __table_args__ = (UniqueConstraint("name", "tournament_id", name="name_tournament_id_uc"),)
 
     tournament = relationship("TournamentDB", back_populates="groups")
-    games = relationship("GameDB", back_populates="group", cascade="save-update, merge, delete", lazy="joined")
-    teams = relationship(
-        "TeamGroupStatsDB", back_populates="group", cascade="save-update, merge, delete", lazy="joined"
-    )
+    games = relationship("GameDB", back_populates="group", cascade="save-update, merge, delete")
+    teams = relationship("TeamGroupStatsDB", back_populates="group", cascade="save-update, merge, delete")
 
 
 class GameDB(Base):
     __tablename__ = "games"
 
     id = Column(Integer, primary_key=True, index=True)
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
+    group_id = mapped_column(Integer, ForeignKey("groups.id"))
     number = Column(Integer, nullable=False)
     date = Column(DateTime(timezone=True), nullable=False)
-    home_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
-    guest_team_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
+    home_team_id = mapped_column(Integer, ForeignKey("teams.id"))
+    guest_team_id = mapped_column(Integer, ForeignKey("teams.id"))
     result = Column(Text, nullable=False)
     url = Column(Text, nullable=False)
 
     group = relationship("GroupDB", back_populates="games")
-    home_team = relationship("TeamDB", primaryjoin="GameDB.home_team_id == TeamDB.id", lazy="joined")
-    guest_team = relationship("TeamDB", primaryjoin="GameDB.guest_team_id == TeamDB.id", lazy="joined")
+    home_team = relationship("TeamDB", primaryjoin="GameDB.home_team_id == TeamDB.id")
+    guest_team = relationship("TeamDB", primaryjoin="GameDB.guest_team_id == TeamDB.id")
 
 
 class TeamGroupStatsDB(Base):
@@ -73,7 +71,7 @@ class TeamGroupStatsDB(Base):
     points = Column(Integer, nullable=False)
 
     group = relationship("GroupDB", back_populates="teams")
-    team = relationship("TeamDB", primaryjoin="TeamGroupStatsDB.team_id == TeamDB.id", lazy="joined")
+    team = relationship("TeamDB", primaryjoin="TeamGroupStatsDB.team_id == TeamDB.id")
 
 
 class PlayerDB(Base):

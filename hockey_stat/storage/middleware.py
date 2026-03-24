@@ -9,7 +9,7 @@ from .dao.tournament import GroupDAO, TournamentDAO
 
 DATABASE_URL = f"sqlite+aiosqlite:///{os.getenv('DATABASE_URL', 'hockeybot.db')}"
 
-engine = asyncio.create_async_engine(DATABASE_URL, echo=True)
+engine = asyncio.create_async_engine(DATABASE_URL, echo=False)
 SessionLocal = asyncio.async_sessionmaker(engine, expire_on_commit=False)
 
 

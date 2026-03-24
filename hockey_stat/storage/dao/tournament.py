@@ -4,7 +4,13 @@ import sqlalchemy as sa
 from sqlalchemy import desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from hockey_stat.storage.models import GameDB, GroupDB, TeamGroupStatsDB, TournamentDB
+from hockey_stat.storage.models import (
+    GameDB,
+    GroupDB,
+    TeamDB,
+    TeamGroupStatsDB,
+    TournamentDB,
+)
 
 
 class TournamentDAO:
@@ -23,7 +29,7 @@ class TournamentDAO:
 
     async def get_with_groups(self, name: str, age: int) -> t.Optional[TournamentDB]:
         result = await self.session.execute(
-            sa.select(TournamentDB, GroupDB)
+            sa.select(TournamentDB)
             .where(TournamentDB.name == name, TournamentDB.age == age)
             .options(sa.orm.joinedload(TournamentDB.groups))
         )
@@ -46,24 +52,26 @@ class GroupDAO:
         result = await self.session.execute(sa.select(GroupDB.name).where(GroupDB.tournament_id == tour_id))
         return result.scalars().all()
 
-    async def get_group_table(self, name: str, tour_id: int) -> GroupDB:
-        result = await self.session.execute(
-            sa.select(GroupDB, TeamGroupStatsDB)
-            .where(GroupDB.tournament_id == tour_id, GroupDB.name == name)
-            .options(sa.orm.joinedload(GroupDB.teams), sa.orm.joinedload(TeamGroupStatsDB.team))
-        )
-        return result.scalar()
+    @staticmethod
+    def get_subquery(name: str, tour_id: int) -> sa.Select[sa.Any]:
+        return sa.select(GroupDB.id).where(GroupDB.tournament_id == tour_id, GroupDB.name == name)
 
-    async def get_group_calendar(self, name: str, tour_id: int) -> GroupDB:
+    async def get_group_table(self, name: str, tour_id: int) -> t.Sequence[TeamGroupStatsDB]:
         result = await self.session.execute(
-            sa.select(GroupDB, GameDB)
-            .where(GroupDB.tournament_id == tour_id, GroupDB.name == name)
+            sa.select(TeamGroupStatsDB)
+            .options(sa.orm.joinedload(TeamGroupStatsDB.team))
+            .where(TeamGroupStatsDB.group_id.in_(self.get_subquery(name, tour_id)))
+        )
+        return result.scalars().all()
+
+    async def get_group_calendar(self, name: str, tour_id: int) -> t.Sequence[GameDB]:
+        query = (
+            sa.select(GameDB)
             .options(
-                sa.orm.joinedload(GroupDB.games),
                 sa.orm.joinedload(GameDB.home_team),
                 sa.orm.joinedload(GameDB.guest_team),
             )
-            .order_by(desc(GameDB.date))
-            .limit(10)
+            .where(GameDB.group_id.in_(self.get_subquery(name, tour_id)))
         )
-        return result.scalar()
+        result = await self.session.execute(query)
+        return result.scalars().all()

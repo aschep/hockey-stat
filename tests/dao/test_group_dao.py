@@ -24,12 +24,10 @@ class TestGroupDao:
 
     @pytest.mark.asyncio
     async def test_tournaments_get_group_table(self, get_async_db, create_env, group_db, group_team_stats_db):
-        group = await GroupDAO(get_async_db).get_group_table(group_db.name, group_db.tournament_id)
+        teams = await GroupDAO(get_async_db).get_group_table(group_db.name, group_db.tournament_id)
 
-        assert group
-        assert len(group.teams) == 1
-        assert group.name == group_db.name
-        team_stats = group.teams[0]
+        assert len(teams) == 1
+        team_stats = teams[0]
         assert team_stats.id == group_team_stats_db.id
         assert team_stats.team_id == group_team_stats_db.team_id
         assert team_stats.place == group_team_stats_db.place
@@ -38,12 +36,10 @@ class TestGroupDao:
 
     @pytest.mark.asyncio
     async def test_tournaments_get_group_calendar(self, get_async_db, create_env, group_db, game_db):
-        group = await GroupDAO(get_async_db).get_group_calendar(group_db.name, group_db.tournament_id)
+        games = await GroupDAO(get_async_db).get_group_calendar(group_db.name, group_db.tournament_id)
 
-        assert group
-        assert len(group.games) == 1
-        assert group.name == group_db.name
-        game = group.games[0]
+        assert len(games) == 1
+        game = games[0]
         assert game.id == game_db.id
         assert game.home_team_id == game_db.home_team_id
         assert game.home_team_id == game_db.home_team_id
