@@ -5,7 +5,7 @@ from aiogram import BaseMiddleware
 from sqlalchemy.ext import asyncio
 
 from .dao.team import TeamDAO
-from .dao.tournament import TournamentDAO
+from .dao.tournament import GroupDAO, TournamentDAO
 
 DATABASE_URL = f"sqlite+aiosqlite:///{os.getenv('DATABASE_URL', 'hockeybot.db')}"
 
@@ -30,4 +30,5 @@ class DatabaseMiddleware(BaseMiddleware):
     ) -> Any:
         data["team_dao"] = TeamDAO(self.session)
         data["tour_dao"] = TournamentDAO(self.session)
+        data["group_dao"] = GroupDAO(self.session)
         return await handler(event, data)

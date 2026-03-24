@@ -30,8 +30,10 @@ class GroupDB(Base):
     __table_args__ = (UniqueConstraint("name", "tournament_id", name="name_tournament_id_uc"),)
 
     tournament = relationship("TournamentDB", back_populates="groups")
-    games = relationship("GameDB", back_populates="group", cascade="save-update, merge, delete")
-    teams = relationship("TeamGroupStatsDB", back_populates="group", cascade="save-update, merge, delete")
+    games = relationship("GameDB", back_populates="group", cascade="save-update, merge, delete", lazy="joined")
+    teams = relationship(
+        "TeamGroupStatsDB", back_populates="group", cascade="save-update, merge, delete", lazy="joined"
+    )
 
 
 class GameDB(Base):
