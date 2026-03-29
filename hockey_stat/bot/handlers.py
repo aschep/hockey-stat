@@ -2,10 +2,17 @@ import logging
 import typing as t
 
 from aiogram import F, Router
+from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandObject, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import KeyboardButton, Message, ReplyKeyboardMarkup
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    ReplyKeyboardRemove,
+)
 
 from hockey_stat.storage.dao.team import TeamDAO
 from hockey_stat.storage.dao.tournament import GroupDAO, TournamentDAO
@@ -15,14 +22,39 @@ logger.setLevel(logging.DEBUG)
 router = Router()
 
 
-def make_row_keyboard(items: t.Sequence[t.Union[str, int]]) -> ReplyKeyboardMarkup:
+def make_row_keyboard(
+    items: t.Sequence[t.Union[str, int]], items_in_row=4, show_back=False, show_reset=True
+) -> InlineKeyboardMarkup:
     """
     Создаёт реплай-клавиатуру с кнопками в один ряд
     :param items: список текстов для кнопок
+    :param items_in_row: количество кнопок в одно ряду
+    :param show_back: показывать кнопку `Назад`
+    :param show_reset: показывать кнопку `Сброс`
     :return: объект реплай-клавиатуры
     """
-    row = [KeyboardButton(text=item) for item in items]
-    return ReplyKeyboardMarkup(keyboard=[row], resize_keyboard=True)
+    rows = []
+    row = []
+    for item in items:
+        row.append(InlineKeyboardButton(text=item, callback_data=item))
+        if len(row) == items_in_row:
+            rows.append(row.copy())
+            row.clear()
+
+    if row:
+        rows.append(row.copy())
+        row.clear()
+
+    if show_back:
+        row.append(InlineKeyboardButton(text="Назад", callback_data="back"))
+
+    if show_reset:
+        row.append(InlineKeyboardButton(text="Сброс", callback_data="reset"))
+
+    if row:
+        rows.append(row)
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 class TournamentState(StatesGroup):
@@ -33,8 +65,25 @@ class TournamentState(StatesGroup):
 
 
 @router.message(Command("start"))
-async def cmd_start(message: Message):
-    await message.answer("Bot запущен!")
+async def cmd_start(message: Message, state: FSMContext):
+    await state.clear()
+
+    msg = "Bot запущен!\n" "/tour - информация о текущем турнире"
+    await message.answer(msg, reply_markup=ReplyKeyboardRemove())
+
+
+@router.callback_query(F.data == "reset")
+async def reset_state(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.answer("/tour - информация о текущем турнире")
+    await callback.answer()
+
+
+@router.message(StateFilter("*"), Command("back"))
+async def reset_state(message: Message, state: FSMContext):
+    if state.get_state() == TournamentState.tournament_name:
+        await state.clear()
+        await message.answer("/tour - информация о текущем турнире")
 
 
 @router.message(StateFilter(None), Command("tour"))
@@ -46,39 +95,45 @@ async def cmd_tour_start(message: Message, state: FSMContext, tour_dao: Tourname
     :param tour_dao: объект для получения данных о турнире из БД
     :return: None
     """
-    tour_names = tour_dao.get_names()
+    tour_names = await tour_dao.get_names()
     if not tour_names:
         await message.answer(text="Нет ни одного турнира")
         return
 
-    await message.answer(text="Выберите турнир:", reply_markup=make_row_keyboard(tour_names))
+    logger.info("tournaments found: %r", tour_names)
+    await message.answer(text="Выберите турнир:", reply_markup=make_row_keyboard(tour_names, show_back=False))
     await state.set_state(TournamentState.tournament_name)
 
 
-@router.message(StateFilter(TournamentState.tournament_name))
-async def cmd_set_tour_name(message: Message, state: FSMContext, tour_dao: TournamentDAO):
+@router.callback_query(StateFilter(TournamentState.tournament_name))
+async def cmd_set_tour_name(callback: CallbackQuery, state: FSMContext, tour_dao: TournamentDAO):
     """
     Получаем имя турнира. Спрашиваем возраст.
-    :param message: имя турнира
+    :param callback: имя турнира
     :param state:
     :param tour_dao: объект для получения данных о турнире из БД
     :return: None
     """
-    await state.update_data(tournament_name=message.text)
-    tour_ages = tour_dao.get_ages(message.text)
+    logger.info("get tournament %s", callback.data)
+    await state.update_data(tournament_name=callback.data)
+    tour_ages = await tour_dao.get_ages(callback.data)
     if not tour_ages:
-        await message.answer(text=f"Нет ни одного возраста для турнира {message.text}")
+        await callback.message.answer(text=f"Нет ни одного возраста для турнира {callback.data}")
         return
 
-    await message.answer(text="Выберите возраст:", reply_markup=make_row_keyboard(tour_ages))
+    logger.info("tournament ages found: %r", tour_ages)
+    await callback.message.answer(
+        text="Выберите возраст:", reply_markup=make_row_keyboard([f"{age}" for age in tour_ages])
+    )
     await state.set_state(TournamentState.tournament_age)
+    await callback.answer()
 
 
-@router.message(StateFilter(TournamentState.tournament_age))
-async def cmd_set_tour_age(message: Message, state: FSMContext, tour_dao: TournamentDAO, group_dao: GroupDAO):
+@router.callback_query(StateFilter(TournamentState.tournament_age))
+async def cmd_set_tour_age(callback: CallbackQuery, state: FSMContext, tour_dao: TournamentDAO, group_dao: GroupDAO):
     """
     Получили возраст. Получаем id конкретного турнира. Спрашиваем группу.
-    :param message: возраст
+    :param callback: возраст
     :param state:
     :param tour_dao: объект для получения данных о турнире из БД
     :param group_dao: объект для получения данных о группах из БД
@@ -86,64 +141,86 @@ async def cmd_set_tour_age(message: Message, state: FSMContext, tour_dao: Tourna
     """
     tour_data = await state.get_data()
     tour_name = tour_data["tournament_name"]
-    tour_age = int(message.text)
-    tour_id = tour_dao.get_id(tour_name, tour_age)
+    tour_age = int(callback.data)
+    tour_id = await tour_dao.get_id(tour_name, tour_age)
     if not tour_id:
-        await message.answer(text=f"Не могу найти турнир {tour_name} ({tour_age})")
+        await callback.message.answer(text=f"Не могу найти турнир {tour_name} ({tour_age})")
+        await callback.answer()
         return
-    await state.update_data(tournament_age=tour_age, tour_id=tour_id)
+    await state.update_data(tournament_age=tour_age, tournament_id=tour_id)
 
-    tour_groups = group_dao.get_group_names(tour_id)
+    tour_groups = await group_dao.get_group_names(tour_id)
     if not tour_groups:
-        await message.answer(text=f"Не могу найти группы для турнира {tour_name} ({tour_age})")
+        await callback.message.answer(text=f"Не могу найти группы для турнира {tour_name} ({tour_age})")
         return
 
-    await message.answer(text="Что показать:", reply_markup=make_row_keyboard(tour_groups))
+    logger.info("tournament groups found: %r", tour_groups)
+    await callback.message.answer(text="Что показать:", reply_markup=make_row_keyboard(tour_groups))
     await state.set_state(TournamentState.group_name)
+    await callback.answer()
 
 
 entities = ["Таблица", "Календарь"]
 
 
-@router.message(StateFilter(TournamentState.group_name))
-async def cmd_set_group_name(message: Message, state: FSMContext, group_dao: GroupDAO):
+@router.callback_query(StateFilter(TournamentState.group_name))
+async def cmd_set_group_name(callback: CallbackQuery, state: FSMContext):
     """
     Получили группу в турнире. Что выводим: таблицу или календарь?
-    :param message: имя группы
+    :param callback: имя группы
     :param state:
     :param group_dao: объект для получения данных о группах из БД
     :return: None
     """
     tour_data = await state.get_data()
-    group_name = tour_data["group_name"] if "group_name" in tour_data else message.text
+    group_name = tour_data["group_name"] if "group_name" in tour_data else callback.data
 
     await state.update_data(group_name=group_name)
 
-    await message.answer(text="Что показать:", reply_markup=make_row_keyboard(entities))
+    await callback.message.answer(text="Что показать:", reply_markup=make_row_keyboard(entities))
     await state.set_state(TournamentState.entity)
+    await callback.answer()
 
 
-@router.message(StateFilter(TournamentState.entity), F.text.in_(entities))
-async def cmd_set_group_name(message: Message, state: FSMContext, group_dao: GroupDAO):
+@router.callback_query(StateFilter(TournamentState.entity), F.data.in_(entities))
+async def cmd_set_group_name(callback: CallbackQuery, state: FSMContext, group_dao: GroupDAO):
     tour_data = await state.get_data()
+    logger.info("Tour data %r", tour_data)
     tour_id = tour_data["tournament_id"]
     group_name = tour_data["group_name"]
 
-    msg = ""
-    if message.text == entities[0]:  # календарь
+    msg = f"{callback.data} - это что еще такое?!"
+    if callback.data == entities[1]:  # календарь
         games = await group_dao.get_group_calendar(name=group_name, tour_id=tour_id)
-        msg = "\n|Дата|Хозяева|Гости|Счет|\n|:---|:---:|:---:|:---:|"
-        msg += "\n".join(f"|{game.date}|{game.home_team.name}|{game.guest_team.name}|{game.result}|" for game in games)
-    elif message.text == entities[1]:  # Таблица
+        if games:
+            lines = ["Следующие 10 игр в сезоне"]
+
+            for game in games:
+                date_str = game.date.strftime("%d.%m %H:%M")
+                home = (game.home_team.name + "        ")[:18]
+                guest = (game.guest_team.name + "        ")[:18]
+                lines.append(f"{date_str:<12}: {home} vs {guest}")
+        else:
+            lines = ["В этой группе все игры сыграны."]
+
+        msg = "<pre>" + "\n".join(lines) + "</pre>"
+
+    elif callback.data == entities[0]:  # таблица
         teams = await group_dao.get_group_table(name=group_name, tour_id=tour_id)
-        msg = "\n|#|Команда|Игры|Очки|\n|:---|:---:|---:|---:|\n"
-        msg += "\n".join(f"|{team.place}|{team.name}|{team.games}|{team.points}|" for team in teams)
+        lines = ["№ Команда: Очки (Игры)"]
 
-    else:
-        msg = f"{message.tex} - это что еще такое?!"
+        for team_stat in teams:
+            place = f"{team_stat.place:>4}"
+            name = f"{team_stat.team.name:<18}"
+            games_str = f"{team_stat.games:>4}"
+            points = f"{team_stat.points:>4}"
+            lines.append(f"{place}. {name}: {points} ({games_str})")
 
-    await message.answer(text=msg, reply_markup=make_row_keyboard(entities))
-    await state.set_state(TournamentState.group_name)
+        msg = "<pre>" + "\n".join(lines) + "</pre>"
+
+    await callback.message.answer(msg, parse_mode=ParseMode.HTML)
+    await callback.message.answer(text="Что показать:", reply_markup=make_row_keyboard(entities))
+    await callback.answer()
 
 
 @router.message(Command("tours"))

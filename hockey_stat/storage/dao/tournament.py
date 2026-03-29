@@ -1,4 +1,5 @@
 import typing as t
+from datetime import datetime
 
 import sqlalchemy as sa
 from sqlalchemy import desc
@@ -64,14 +65,21 @@ class GroupDAO:
         )
         return result.scalars().all()
 
-    async def get_group_calendar(self, name: str, tour_id: int) -> t.Sequence[GameDB]:
+    async def get_group_calendar(self, name: str, tour_id: int, from_now: bool = True) -> t.Sequence[GameDB]:
+        condition = [GameDB.group_id.in_(self.get_subquery(name, tour_id))]
+        if from_now:
+            condition.append(GameDB.date >= datetime.today())
+
         query = (
             sa.select(GameDB)
             .options(
                 sa.orm.joinedload(GameDB.home_team),
                 sa.orm.joinedload(GameDB.guest_team),
             )
-            .where(GameDB.group_id.in_(self.get_subquery(name, tour_id)))
+            .where(*condition)
+            .order_by(GameDB.number)
+            .limit(10)
         )
+
         result = await self.session.execute(query)
         return result.scalars().all()

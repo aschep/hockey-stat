@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /opt/hockey_bot
+poetry run python -m hockey_stat.bot.maintest

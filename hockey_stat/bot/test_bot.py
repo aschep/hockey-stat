@@ -24,8 +24,8 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 async def main():
-    session = AiohttpSession()
-    bot = Bot(token=BOT_TOKEN, session=session)
+    session = AiohttpSession(api=TEST)
+    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN), session=session)
     dp = Dispatcher(storage=MemoryStorage())
 
     async with SessionLocal() as db_session:
@@ -33,7 +33,12 @@ async def main():
         dp.include_router(handlers.router)
         logger.info("Bot running")
 
-        await dp.start_polling(bot)
+        message = Message(
+            message_id=1, date=12345678, chat=Chat(id=123, type=ChatType.PRIVATE), text="/groups ПФО 25/26 2013"
+        )
+
+        with patch.object(Message, "answer", new_callable=AsyncMock) as mock_answer:
+            await dp.feed_update(bot, Update(update_id=123, message=message))
 
     logger.info("That's all!")
 

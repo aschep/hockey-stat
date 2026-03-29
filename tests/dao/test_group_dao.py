@@ -36,7 +36,7 @@ class TestGroupDao:
 
     @pytest.mark.asyncio
     async def test_tournaments_get_group_calendar(self, get_async_db, create_env, group_db, game_db):
-        games = await GroupDAO(get_async_db).get_group_calendar(group_db.name, group_db.tournament_id)
+        games = await GroupDAO(get_async_db).get_group_calendar(group_db.name, group_db.tournament_id, from_now=False)
 
         assert len(games) == 1
         game = games[0]

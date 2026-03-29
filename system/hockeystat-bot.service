@@ -1,0 +1,23 @@
+[Unit]
+Description=Telegram Hockey Bot
+After=network.target
+
+[Service]
+Type=simple
+User=hockey_bot
+Group=hockey_bot
+WorkingDirectory=/opt/hockey_bot
+ExecStart=/opt/hockey_bot/start_bot
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/hockey_bot
+
+[Install]
+WantedBy=multi-user.target
