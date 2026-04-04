@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /opt/hockey_bot
+poetry run updater

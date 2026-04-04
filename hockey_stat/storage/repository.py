@@ -33,6 +33,9 @@ class TournamentRepository:
     def find_by_name_age(self, name: str, age: int) -> TournamentDB:
         return self.db.query(TournamentDB).filter(TournamentDB.name == name, TournamentDB.age == age).first()
 
+    def all(self) -> t.List[TournamentDB]:
+        return self.db.query(TournamentDB).all()
+
 
 class GroupRepository:
     def __init__(self, db: Session):

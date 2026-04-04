@@ -1,0 +1,10 @@
+[Unit]
+Description=Hockey Stats Updater Timer
+
+[Timer]
+Unit=hockeystat-updater.service
+OnCalendar=*-*-* 00:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

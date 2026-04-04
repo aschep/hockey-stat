@@ -64,6 +64,7 @@ python_functions = "test_*"
 
 [tool.poetry.scripts]
 parser = "hockey_stat.scripts.parser:main"
+updater = "hockey_stat.scripts.updater:main"
 
 [tool.isort]
 profile = "black"

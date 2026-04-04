@@ -1,0 +1,21 @@
+[Unit]
+Description=Hockey Stats Updater Service
+After=network.target
+
+[Service]
+Type=oneshot
+User=hockey_bot
+Group=hockey_bot
+WorkingDirectory=/opt/hockey_bot
+ExecStart=/opt/hockey_bot/start_updater
+
+StandardOutput=append:/var/log/hs_bot/updater.log
+StandardError=append:/var/log/hs_bot/updater.log
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/hockey_bot
+
+[Install]
+WantedBy=multi-user.target

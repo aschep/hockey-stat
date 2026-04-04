@@ -2,6 +2,7 @@ import logging
 import typing as t
 
 from hockey_stat.core.models import Tournament
+from hockey_stat.storage import SessionLocal, TournamentRepository
 
 from .tournament import GroupsParser, TournamentParser
 
@@ -22,3 +23,22 @@ def parse_tournaments_and_groups(tournament_name: str, tournament_url: str) -> t
         logger.info("parsed %d groups: %r", len(tour.groups), tuple(g.name for g in tour.groups))
 
     return tour_parser.tournaments
+
+
+def update_tournaments() -> t.List[Tournament]:
+    with SessionLocal() as db_session:
+        tournaments = [
+            Tournament(name=tour.name, age=tour.age, url=tour.url, key=tour.key)
+            for tour in TournamentRepository(db_session).all()
+        ]
+
+    logger.info("found tournament `%s`", len(tournaments))
+
+    for tour in tournaments:
+        logger.info("parsing calendar and standings for '%s %d'", tour.name, tour.age)
+        groups_parser = GroupsParser(tour)
+        groups_parser.parse()
+        tour.groups = groups_parser.groups
+        logger.info("parsed %d groups: %r", len(tour.groups), tuple(g.name for g in tour.groups))
+
+    return tournaments
