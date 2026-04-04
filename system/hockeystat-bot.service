@@ -11,8 +11,8 @@ ExecStart=/opt/hockey_bot/start_bot
 Restart=always
 RestartSec=5
 
-StandardOutput=journal
-StandardError=journal
+StandardOutput=append:/var/log/hs_bot/bot.log
+StandardError=append:/var/log/hs_bot/bot.log
 
 NoNewPrivileges=true
 PrivateTmp=true

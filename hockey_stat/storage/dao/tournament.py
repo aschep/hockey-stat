@@ -62,6 +62,7 @@ class GroupDAO:
             sa.select(TeamGroupStatsDB)
             .options(sa.orm.joinedload(TeamGroupStatsDB.team))
             .where(TeamGroupStatsDB.group_id.in_(self.get_subquery(name, tour_id)))
+            .order_by(TeamGroupStatsDB.place)
         )
         return result.scalars().all()
 

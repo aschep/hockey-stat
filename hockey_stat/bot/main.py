@@ -1,15 +1,10 @@
 import asyncio
 import logging
 import os
-from unittest.mock import AsyncMock, patch
 
 from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.client.telegram import TEST
-from aiogram.enums import ChatType, ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Chat, Message, Update
 from dotenv import load_dotenv
 
 from hockey_stat.bot import handlers
