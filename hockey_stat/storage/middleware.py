@@ -2,15 +2,26 @@ import os
 from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
+from sqlalchemy import NullPool, event
 from sqlalchemy.ext import asyncio
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from .dao.team import TeamDAO
 from .dao.tournament import GroupDAO, TournamentDAO
 
 DATABASE_URL = f"sqlite+aiosqlite:///{os.getenv('DATABASE_URL', 'hockeybot.db')}"
 
-engine = asyncio.create_async_engine(DATABASE_URL, echo=False)
+engine = asyncio.create_async_engine(DATABASE_URL, echo=False, poolclass=NullPool)
 SessionLocal = asyncio.async_sessionmaker(engine, expire_on_commit=False)
+
+
+@event.listens_for(engine.sync_engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA journal_mode=WAL")
+    cursor.execute("PRAGMA synchronous=NORMAL")
+    cursor.execute("PRAGMA busy_timeout=20000")
+    cursor.close()
 
 
 # async def get_db() -> asyncio.AsyncSession:
@@ -19,8 +30,8 @@ SessionLocal = asyncio.async_sessionmaker(engine, expire_on_commit=False)
 
 
 class DatabaseMiddleware(BaseMiddleware):
-    def __init__(self, session: asyncio.AsyncSession):
-        self.session = session
+    def __init__(self, session_pool: async_sessionmaker):
+        self.session_pool = session_pool
 
     async def __call__(
         self,
@@ -28,7 +39,8 @@ class DatabaseMiddleware(BaseMiddleware):
         event: Any,
         data: Dict[str, Any],
     ) -> Any:
-        data["team_dao"] = TeamDAO(self.session)
-        data["tour_dao"] = TournamentDAO(self.session)
-        data["group_dao"] = GroupDAO(self.session)
-        return await handler(event, data)
+        async with self.session_pool() as session:
+            data["team_dao"] = TeamDAO(session)
+            data["tour_dao"] = TournamentDAO(session)
+            data["group_dao"] = GroupDAO(session)
+            return await handler(event, data)

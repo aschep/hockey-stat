@@ -1,4 +1,27 @@
 #!/bin/bash
 
-cd /opt/hockey_bot
+cd /opt/hockey_bot || exit 1
+
+DB_PATH="hockeybot.db"
+DAYS_TO_KEEP=7
+TIMESTAMP=$(date +%F_%H-%M)
+BACKUP_DIR="backup"
+mkdir -p ${BACKUP_DIR}
+BACKUP_PATH="${BACKUP_DIR}/db_${TIMESTAMP}.sqlite"
+
+sqlite3 "${DB_PATH}" ".backup '${BACKUP_PATH}'"
+RESULT=$(sqlite3 "${BACKUP_PATH}" "PRAGMA integrity_check;")
+
+if [ "$RESULT" != "ok" ]; then
+    echo "ОШИБКА: Бэкап поврежден!"
+    exit 1
+fi
+
+echo "Бэкап создан и проверен: $BACKUP_PATH"
+
+find "${BACKUP_DIR}" -name "db_*.sqlite" -type f -mtime +${DAYS_TO_KEEP} -delete
+echo "[$TIMESTAMP] Старые бэкапы (>${DAYS_TO_KEEP} дн.) удалены."
+
+echo "[$(date +%F_%H-%M)] запуск обновления данных"
 poetry run updater
+echo "[$(date +%F_%H-%M)] обновления данных завершено"

@@ -23,12 +23,11 @@ async def main():
     bot = Bot(token=BOT_TOKEN, session=session)
     dp = Dispatcher(storage=MemoryStorage())
 
-    async with SessionLocal() as db_session:
-        dp.update.middleware(DatabaseMiddleware(db_session))
-        dp.include_router(handlers.router)
-        logger.info("Bot running")
+    dp.update.middleware(DatabaseMiddleware(SessionLocal))
+    dp.include_router(handlers.router)
+    logger.info("Bot running")
 
-        await dp.start_polling(bot)
+    await dp.start_polling(bot)
 
     logger.info("That's all!")
 
