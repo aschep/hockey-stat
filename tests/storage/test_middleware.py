@@ -4,7 +4,7 @@ import pytest
 from aiogram.types import Message
 
 from hockey_stat.storage.dao.team import TeamDAO
-from hockey_stat.storage.dao.tournament import TournamentDAO, GroupDAO
+from hockey_stat.storage.dao.tournament import GroupDAO, TournamentDAO
 from hockey_stat.storage.middleware import DatabaseMiddleware
 
 
